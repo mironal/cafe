@@ -63,7 +63,7 @@ async function getRanking(page) {
 
   const list = datas.map(d =>
     title.reduce((prev, current, index) => {
-      prev[current] = d[index];
+      prev[current.toLowerCase()] = d[index];
       return prev;
     }, {})
   );
@@ -110,18 +110,18 @@ async function retrieveHistories(browser) {
  * @param config {{country: string, year: string, url: string}}
  */
 async function downloadIfNeeded(config) {
-  const { country, year } = config;
+  const { country, year, href } = config;
 
-  if (exists(country, year, baseDir)) {
+  if (exists(country, year, __dirname)) {
     console.log("Cache found for", JSON.stringify(config));
     return;
   }
 
   console.log("Cache not found. Download", JSON.stringify(config));
 
-  const response = await downloadHtml(yl.href);
+  const response = await downloadHtml(href);
 
-  const output = createCacheWritableStream(countryName, yl.year, baseDir);
+  const output = createCacheWritableStream(countryName, year, __dirname);
   response.pipe(output);
 
   await new Promise((resolve, reject) => {
@@ -150,7 +150,7 @@ async function downloadIfNeeded(config) {
       const task = async () => {
         console.log("> Get ranking", JSON.stringify(hist));
         const page = await browser.newPage();
-        const html = await readCache(hist.country, hist.year, baseDir);
+        const html = await readCache(hist.country, hist.year, __dirname);
 
         await page.setContent(html);
 
