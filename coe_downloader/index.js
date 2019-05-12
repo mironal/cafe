@@ -121,7 +121,7 @@ async function downloadIfNeeded(config) {
 
   const response = await downloadHtml(href);
 
-  const output = createCacheWritableStream(countryName, year, __dirname);
+  const output = createCacheWritableStream(country, year, __dirname);
   response.pipe(output);
 
   await new Promise((resolve, reject) => {
@@ -142,7 +142,11 @@ async function downloadIfNeeded(config) {
   const histories = await retrieveHistories(browser);
   console.log(`> ${histories.length} histories found.`);
 
-  await Promise.all(histories.map(downloadIfNeeded));
+  const dlLimit = pLimit(1)
+
+  await Promise.all(histories.map(hist =>
+      dlLimit(() => downloadIfNeeded(hist))
+    ));
 
   const limit = pLimit(10);
   const rankings = await Promise.all(
